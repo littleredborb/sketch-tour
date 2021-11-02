@@ -83,7 +83,7 @@
 			grid-column: 2 / span 1;
 			grid-row: 1 / span 1;
 			display: grid;
-			grid-template-columns: 1fr 32px;
+			grid-template-columns: 500px 1fr 32px;
 			justify-content: end;
 			align-content: center;
 			align-items: center;
@@ -94,12 +94,19 @@
 			border-left: 1px solid #eeeeee;
 		}
 		
-		#controls div {
-			grid-column: 1 / span 1;
+		#controls div#timer {
+			grid-column: 2 / span 1;
 		}
 		
 		#controls img#play {
-			grid-column: 2 / span 1;
+			grid-column: 3 / span 1;
+		}
+		
+		#controls #place_title {
+			grid-column: 1 / span 1;
+			width: 100%;
+			display: grid;
+			justify-content: start;
 		}
 		
 		#pano {
@@ -218,6 +225,7 @@
 				for (let i = 0; i < results.length; i++) {
 					let temp = processURL(results[i][0])
 					temp["duration"] = results[i][1]
+					temp["title"] = results[i][2]
 					places.push(temp)
 				}
 
@@ -254,6 +262,7 @@
 				setPanorama(temp)
 
 				setTimer(temp.duration)
+				$("#place_title").text(temp.title)
 			} else {
 				timer.reset()
 				timer = null
@@ -379,13 +388,14 @@
 		<div id="map"></div>
 
 		<div id="controls">
+			<div id="place_title">Pitstop</div>
 			<div id="timer"></div>
 			<img class="icon button" id="play" src="static/play.png">
 		</div>
 		<div id="pano"></div>
 	</div>
 	<div id="footer">
-		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.1
+		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.2
 	</div>
 	<!-- Async script executes immediately and must be after any DOM elements used in callback. -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSuqyZVaPDErKJbqelqmPPoL9l0Ws3vZ8&callback=initMap&v=weekly" async></script>
