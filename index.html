@@ -222,15 +222,15 @@
 		});
 
 		function loadNextPlace() {
-			if (timer) {
+			if (current_idx < places.length) {
 				timer.reset()
 				timer = null
-			}
-			if (current_idx < places.length) {
+
 				let temp = places[current_idx]
 				setMap(temp)
 				setPanorama(temp)
 
+				console.log("duration: " + temp.duratino)
 				setTimer(temp.duration)
 				$("#place_title").text(temp.title)
 			} else {
@@ -242,27 +242,23 @@
 		}
 
 		function setTimer(duration) {
-			if (!timer) {
-				timer = new easytimer.Timer();
-				timer.start({
-					countdown: true,
-					startValues: {
-						seconds: duration + 1
-					}
-				});
+			timer = new easytimer.Timer();
+			timer.start({
+				countdown: true,
+				startValues: {
+					seconds: duration
+				}
+			});
 
+			$('#timer').html(timer.getTimeValues().toString());
+
+			timer.addEventListener('secondsUpdated', function(e) {
 				$('#timer').html(timer.getTimeValues().toString());
+			});
 
-				timer.addEventListener('secondsUpdated', function(e) {
-					$('#timer').html(timer.getTimeValues().toString());
-				});
-
-				timer.addEventListener('targetAchieved', function(e) {
-					loadNextPlace()
-				});
-			} else {
-				timer.start()
-			}
+			timer.addEventListener('targetAchieved', function(e) {
+				loadNextPlace()
+			});
 		}
 
 		function loadPlaces(places) {
@@ -365,7 +361,7 @@
 		<div id="pano"></div>
 	</div>
 	<div id="footer">
-		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.4
+		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.5
 	</div>
 	<!-- Async script executes immediately and must be after any DOM elements used in callback. -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSuqyZVaPDErKJbqelqmPPoL9l0Ws3vZ8&callback=initMap&v=weekly" async></script>
