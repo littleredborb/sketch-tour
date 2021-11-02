@@ -137,38 +137,6 @@
 			transition: opacity 1s ease;
 			opacity: 100%;
 		}
-		
-		.progressbar {
-			width: 80%;
-			margin: 25px auto;
-			border: solid 1px #000;
-		}
-		
-		.progressbar .inner {
-			height: 15px;
-			animation: progressbar-countdown;
-			/* Placeholder, this will be updated using javascript */
-			animation-duration: 40s;
-			/* We stop in the end */
-			animation-iteration-count: 1;
-			/* Stay on pause when the animation is finished finished */
-			animation-fill-mode: forwards;
-			/* We start paused, we start the animation using javascript */
-			animation-play-state: paused;
-			/* We want a linear animation, ease-out is standard */
-			animation-timing-function: linear;
-		}
-		
-		@keyframes progressbar-countdown {
-			0% {
-				width: 100%;
-				background: #0F0;
-			}
-			100% {
-				width: 0%;
-				background: #F00;
-			}
-		}
 
 	</style>
 	<script src="papaparse.min.js"></script>
@@ -224,8 +192,8 @@
 
 				for (let i = 0; i < results.length; i++) {
 					let temp = processURL(results[i][0])
-					temp["duration"] = results[i][1]
-					temp["title"] = results[i][2]
+					temp["duration"] = parseInt(results[i][1])
+					temp["title"] = results[i][2].trim()
 					places.push(temp)
 				}
 
@@ -397,7 +365,7 @@
 		<div id="pano"></div>
 	</div>
 	<div id="footer">
-		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.3
+		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.4
 	</div>
 	<!-- Async script executes immediately and must be after any DOM elements used in callback. -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSuqyZVaPDErKJbqelqmPPoL9l0Ws3vZ8&callback=initMap&v=weekly" async></script>
