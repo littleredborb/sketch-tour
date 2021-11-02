@@ -201,6 +201,7 @@
 
 		let places = []
 		let play = false
+		let first_play = true;
 		let loaded = false
 		let current_idx = 0
 		let timer
@@ -229,7 +230,12 @@
 				} else {
 					if (!play) {
 						$(".button#play").attr("src", "static/pause.png")
-						setTimer(places[current_idx].duration)
+						if (first_play) {
+							loadNextPlace()
+							first_play = false
+						} else {
+							timer.start()
+						}
 					} else {
 						$(".button#play").attr("src", "static/play.png")
 						timer.pause()
@@ -240,13 +246,20 @@
 		});
 
 		function loadNextPlace() {
-			console.log("loadNextPlace")
 			timer.reset()
-			current_idx++
-			setMap(places[current_idx])
-			setPanorama(places[current_idx])
+			timer = null
+			if (current_idx < places.length) {
+				let temp = places[current_idx]
+				setMap(temp)
+				setPanorama(temp)
 
-			setTimer(places[current_idx].duration)
+				setTimer(temp.duration)
+			} else {
+				timer.reset()
+				timer = null
+				alert("End of tour 😊")
+			}
+			current_idx++
 		}
 
 		function setTimer(duration) {
@@ -255,7 +268,7 @@
 				timer.start({
 					countdown: true,
 					startValues: {
-						seconds: duration
+						seconds: duration + 1
 					}
 				});
 
