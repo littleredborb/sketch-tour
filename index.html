@@ -291,6 +291,9 @@
 				});
 
 				marker.addListener('click', function() {
+					if (timer) {
+						timer.reset()
+					}
 					place = this.placeData
 
 					setMap(place)
