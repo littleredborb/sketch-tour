@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		/* Optional: Makes the sample page fill the window. */
+		
+		html,
+		body,
+		.container {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			font-family: sans-serif;
+		}
+		/* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+		
+		body {
+			display: grid;
+			grid-template-rows: 1fr 10px;
+			background: white;
+			color: #3C4043;
+			color: #2D4A60;
+		}
+		
+		#map {
+			height: 100%;
+		}
+		
+		.container {
+			grid-row: 1 / span 1;
+			display: grid;
+			grid-template-columns: 1fr 4fr;
+			grid-template-rows: 50px 1fr 3fr;
+		}
+		
+		.data-cell {
+			grid-column: 1 / span 1;
+			grid-row: 1 / span 2;
+			padding: 8px;
+			display: grid;
+			grid-template-rows: 20px 1fr 28px;
+		}
+		
+		.data-cell span {
+			grid-row: 1 / span 1;
+			font-size: 16px;
+			display: grid;
+			width: 100%;
+		}
+		
+		#data {
+			grid-row: 2 / span 1;
+			width: 95%;
+			justify-content: center;
+			font-size: 12px;
+			font-family: sans-serif;
+		}
+		
+		#load-data {
+			grid-row: 3 / span 1;
+			width: 100%;
+			background: #1A73E8;
+			background: #2D4A60;
+			border-radius: 2px;
+			box-shadow: 0px 1px 1px #aaaaaa;
+			color: white;
+			font-size: 16px;
+			padding: 8px;
+			box-sizing: border-box;
+			cursor: pointer;
+			display: flex;
+			justify-content: center;
+		}
+		
+		#map {
+			grid-column: 1 / span 1;
+			grid-row: 3 / span 1;
+		}
+		
+		#controls {
+			grid-column: 2 / span 1;
+			grid-row: 1 / span 1;
+			display: grid;
+			grid-template-columns: 1fr 32px;
+			justify-content: end;
+			align-content: center;
+			align-items: center;
+			justify-items: end;
+			grid-column-gap: 8px;
+			padding: 12px;
+			background: white;
+			border-left: 1px solid #eeeeee;
+		}
+		
+		#controls div {
+			grid-column: 1 / span 1;
+		}
+		
+		#controls img#play {
+			grid-column: 2 / span 1;
+		}
+		
+		#pano {
+			grid-column: 2 / span 1;
+			grid-row: 2 / span 2;
+		}
+		
+		#footer {
+			grid-row: 2 / span 1;
+			display: flex;
+			align-items: center;
+			font-size: 8px;
+		}
+		
+		img.icon {
+			width: 32px;
+			height: 32px;
+			display: inline-block;
+			cursor: pointer;
+		}
+		
+		.button {
+			transition: opacity 1s ease;
+			opacity: 85%;
+		}
+		
+		.button:hover {
+			transition: opacity 1s ease;
+			opacity: 100%;
+		}
+		
+		.progressbar {
+			width: 80%;
+			margin: 25px auto;
+			border: solid 1px #000;
+		}
+		
+		.progressbar .inner {
+			height: 15px;
+			animation: progressbar-countdown;
+			/* Placeholder, this will be updated using javascript */
+			animation-duration: 40s;
+			/* We stop in the end */
+			animation-iteration-count: 1;
+			/* Stay on pause when the animation is finished finished */
+			animation-fill-mode: forwards;
+			/* We start paused, we start the animation using javascript */
+			animation-play-state: paused;
+			/* We want a linear animation, ease-out is standard */
+			animation-timing-function: linear;
+		}
+		
+		@keyframes progressbar-countdown {
+			0% {
+				width: 100%;
+				background: #0F0;
+			}
+			100% {
+				width: 0%;
+				background: #F00;
+			}
+		}
+
+	</style>
+	<script src="papaparse.min.js"></script>
+	<!--	<script src="https://momentjs.com/downloads/moment.js"></script>-->
+	<script src="easytimer.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		/*
+		 * Click the map to set a new location for the Street View camera.
+		 */
+		let map;
+		let panorama;
+		let sv;
+
+		function initMap() {
+			sv = new google.maps.StreetViewService();
+
+			map = new google.maps.Map(document.getElementById("map"), {
+				zoom: 13,
+				streetViewControl: true
+			})
+
+			panorama = new google.maps.StreetViewPanorama(
+				document.getElementById("pano")
+			);
+
+		}
+
+		function Place(lat, lng, h, y, pano, url) {
+			this.lat = lat
+			this.lng = lng
+			this.h = h
+			this.y = y
+			this.pano = pano
+			this.url = url
+		}
+
+		let places = []
+		let play = false
+		let loaded = false
+		let current_idx = 0
+		let timer
+
+		$(document).ready(function() {
+			$("#load-data").click(function() {
+				console.log("loading data")
+
+				let csv = $("#data").val();
+				let results = Papa.parse(csv, {
+					'newline': '\n'
+				}).data;
+
+				for (let i = 0; i < results.length; i++) {
+					let temp = processURL(results[i][0])
+					temp["duration"] = results[i][1]
+					places.push(temp)
+				}
+
+				loadPlaces(places)
+			})
+
+			$(".button#play").click(function() {
+				if (!loaded) {
+					alert("load your data first")
+				} else {
+					if (!play) {
+						$(".button#play").attr("src", "static/pause.png")
+						setTimer(places[current_idx].duration)
+					} else {
+						$(".button#play").attr("src", "static/play.png")
+						timer.pause()
+					}
+					play = !play
+				}
+			})
+		});
+
+		function loadNextPlace() {
+			console.log("loadNextPlace")
+			timer.reset()
+			current_idx++
+			setMap(places[current_idx])
+			setPanorama(places[current_idx])
+
+			setTimer(places[current_idx].duration)
+		}
+
+		function setTimer(duration) {
+			if (!timer) {
+				timer = new easytimer.Timer();
+				timer.start({
+					countdown: true,
+					startValues: {
+						seconds: duration
+					}
+				});
+
+				$('#timer').html(timer.getTimeValues().toString());
+
+				timer.addEventListener('secondsUpdated', function(e) {
+					$('#timer').html(timer.getTimeValues().toString());
+				});
+
+				timer.addEventListener('targetAchieved', function(e) {
+					loadNextPlace()
+				});
+			} else {
+				timer.start()
+			}
+		}
+
+		function loadPlaces(places) {
+			// view first place
+			setMap(places[0])
+			setPanorama(places[0])
+
+			// load all markers on map
+			for (let i = 0; i < places.length; i++) {
+				let place = places[i]
+				let marker = new google.maps.Marker({
+					position: {
+						lat: place.lat,
+						lng: place.lng
+					},
+					placeData: place,
+					map
+				});
+
+				marker.addListener('click', function() {
+					place = this.placeData
+
+					setMap(place)
+					setPanorama(place)
+				});
+			}
+
+			// tour lines
+			let linePath = new google.maps.Polyline({
+				path: places,
+				geodesic: true,
+				strokeColor: '#811411'
+			});
+
+			linePath.setMap(map);
+
+			loaded = true
+		}
+
+		function setPanorama(place) {
+			panorama.setPano(place.pano)
+			panorama.setPov({
+				heading: place.h,
+				pitch: place.y
+			})
+			panorama.setPosition({
+				lat: place.lat,
+				lng: place.lng
+			})
+		}
+
+		function setMap(place) {
+			map.panTo({
+				lat: place.lat,
+				lng: place.lng
+			})
+		}
+
+		function processURL(urlString) {
+			const url = decodeURIComponent(urlString);
+			const match = url.match("^https:\/\/.*\!1s(.*)\!2m.*$");
+			let id = match && match[1];
+			let pov = url.match(/![0-9a-z][0-9a-z]([0-9.]+)/gm);
+
+			return new Place(
+				parseFloat(pov[4].substring(3, pov[4].length)),
+				parseFloat(pov[5].substring(3, pov[5].length)),
+				parseFloat(pov[6].substring(3, pov[6].length)),
+				parseFloat(pov[7].substring(3, pov[7].length)),
+				id,
+				url
+			)
+		}
+
+	</script>
+
+
+	<title>Sketch tour</title>
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+</head>
+
+<body>
+	<div class="container">
+		<div class="data-cell">
+			<span>Data dump</span>
+			<textarea id="data"></textarea>
+			<div class="button" id="load-data">Load data</div>
+		</div>
+		<div id="map"></div>
+
+		<div id="controls">
+			<div id="timer"></div>
+			<img class="icon button" id="play" src="static/play.png">
+		</div>
+		<div id="pano"></div>
+	</div>
+	<div id="footer">
+		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+	</div>
+	<!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSuqyZVaPDErKJbqelqmPPoL9l0Ws3vZ8&callback=initMap&v=weekly" async></script>
+
+
+</body>
+
+</html>
