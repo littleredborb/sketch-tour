@@ -183,21 +183,23 @@
 
 		$(document).ready(function() {
 			$("#load-data").click(function() {
-				console.log("loading data")
+				if (!loaded) {
+					let csv = $("#data").val();
+					let results = Papa.parse(csv, {
+						'newline': '\n'
+					}).data;
 
-				let csv = $("#data").val();
-				let results = Papa.parse(csv, {
-					'newline': '\n'
-				}).data;
+					for (let i = 0; i < results.length; i++) {
+						let temp = processURL(results[i][0])
+						temp["duration"] = parseInt(results[i][1])
+						temp["title"] = results[i][2].trim()
+						places.push(temp)
+					}
 
-				for (let i = 0; i < results.length; i++) {
-					let temp = processURL(results[i][0])
-					temp["duration"] = parseInt(results[i][1])
-					temp["title"] = results[i][2].trim()
-					places.push(temp)
+					loadPlaces(places)
+				} else {
+					alert("Data has already been loaded")
 				}
-
-				loadPlaces(places)
 			})
 
 			$(".button#play").click(function() {
@@ -223,29 +225,19 @@
 
 		function loadNextPlace() {
 			if (current_idx < places.length) {
-				if (timer) {
-					timer.reset()
-					timer = null
-					console.log("timer reset and null")
-				}
-
 				let temp = places[current_idx]
 				setMap(temp)
 				setPanorama(temp)
 
-				console.log("duration: " + temp.duration)
 				setTimer(temp.duration)
 				$("#place_title").text(temp.title)
 			} else {
-				timer.reset()
-				timer = null
 				alert("End of tour 😊")
 			}
 			current_idx++
 		}
 
 		function setTimer(duration) {
-			console.log("settimer duration: " + duration)
 			timer = new easytimer.Timer();
 			timer.start({
 				countdown: true,
@@ -261,10 +253,11 @@
 			});
 
 			timer.addEventListener('targetAchieved', function(e) {
-				loadNextPlace()
-				timer.reset()
-				timer = null
-				console.log("timer targetachieved reset and null")
+				if (!timer.isRunning()) {
+					timer.stop()
+					timer = null
+					loadNextPlace()
+				}
 			});
 		}
 
@@ -287,7 +280,9 @@
 
 				marker.addListener('click', function() {
 					if (timer) {
+						timer.stop()
 						timer.reset()
+						timer = undefined
 					}
 					place = this.placeData
 
@@ -368,7 +363,7 @@
 		<div id="pano"></div>
 	</div>
 	<div id="footer">
-		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.5.2
+		Icons made by <a href="https://www.flaticon.com/authors/hilmy-abiyyu-a" title="Hilmy Abiyyu A.">Hilmy Abiyyu A.</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> &nbsp; &nbsp; &nbsp; &nbsp; v1.0.6
 	</div>
 	<!-- Async script executes immediately and must be after any DOM elements used in callback. -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSuqyZVaPDErKJbqelqmPPoL9l0Ws3vZ8&callback=initMap&v=weekly" async></script>
