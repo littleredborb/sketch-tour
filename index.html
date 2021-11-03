@@ -226,13 +226,14 @@
 				if (timer) {
 					timer.reset()
 					timer = null
+					console.log("timer reset and null")
 				}
 
 				let temp = places[current_idx]
 				setMap(temp)
 				setPanorama(temp)
 
-				console.log("duration: " + temp.duratino)
+				console.log("duration: " + temp.duration)
 				setTimer(temp.duration)
 				$("#place_title").text(temp.title)
 			} else {
@@ -244,6 +245,7 @@
 		}
 
 		function setTimer(duration) {
+			console.log("settimer duration: " + duration)
 			timer = new easytimer.Timer();
 			timer.start({
 				countdown: true,
@@ -260,6 +262,9 @@
 
 			timer.addEventListener('targetAchieved', function(e) {
 				loadNextPlace()
+				timer.reset()
+				timer = null
+				console.log("timer targetachieved reset and null")
 			});
 		}
 
