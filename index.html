@@ -143,7 +143,15 @@
 	<!--	<script src="https://momentjs.com/downloads/moment.js"></script>-->
 	<script src="easytimer.js"></script>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="howler.min.js"></script>
 	<script>
+		// SFX
+		var sfxStart = new Howl({
+		src: ['sfx/start.ogg','sfx/start.mp3']
+		});
+		var sfxTimer = new Howl({
+		src: ['sfx/timer.ogg','sfx/timer.mp3']
+		});
 		/*
 		 * Click the map to set a new location for the Street View camera.
 		 */
@@ -231,6 +239,7 @@
 
 				setTimer(temp.duration)
 				$("#place_title").text(temp.title)
+				sfxStart.play();
 			} else {
 				alert("End of tour 😊")
 			}
@@ -250,6 +259,13 @@
 
 			timer.addEventListener('secondsUpdated', function(e) {
 				$('#timer').html(timer.getTimeValues().toString());
+				if(timer.getTimeValues().seconds <= 5 &&
+				timer.getTimeValues().seconds > 0 &&
+				timer.getTimeValues().minutes == 0 &&
+				timer.getTimeValues().hours == 0 &&
+				timer.getTimeValues().days == 0){
+					sfxTimer.play();
+				}
 			});
 
 			timer.addEventListener('targetAchieved', function(e) {
